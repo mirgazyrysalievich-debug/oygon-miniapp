@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+enum Role {
+  Owner
+  HR
+  Leader
+  Employee
+}
+
+model Company {
+  id          String       @id @default(cuid())
+  name        String
+  createdAt   DateTime     @default(now())
+  departments Department[]
+  users       User[]
+}
+
+model Department {
+  id        String   @id @default(cuid())
+  name      String
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id])
+  users     User[]
+}
+
+model User {
+  id           String      @id @default(cuid())
+  email        String      @unique
+  role         Role        @default(Employee)
+  companyId    String?
+  departmentId String?
+  company      Company?    @relation(fields: [companyId], references: [id])
+  department   Department? @relation(fields: [departmentId], references: [id])
+}
