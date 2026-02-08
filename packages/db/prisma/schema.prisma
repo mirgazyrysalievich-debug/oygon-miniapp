@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RoleEnum {
+  OWNER
+  HR
+  MEMBER
+}
+
+model Company {
+  id                   String     @id @default(cuid())
+  name                 String
+  inviteCode           String     @unique
+  defaultDepartmentId  String?
+  defaultTeamId        String?
+  defaultMemberRole    RoleEnum   @default(MEMBER)
+  departments          Department[]
+  teams                Team[]
+  users                User[]
+  defaultDepartment    Department? @relation("CompanyDefaultDepartment", fields: [defaultDepartmentId], references: [id])
+  defaultTeam          Team?       @relation("CompanyDefaultTeam", fields: [defaultTeamId], references: [id])
+}
+
+model Department {
+  id        String   @id @default(cuid())
+  name      String
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id])
+  users     User[]
+  @@index([companyId])
+}
+
+model Team {
+  id        String   @id @default(cuid())
+  name      String
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id])
+  users     User[]
+  @@index([companyId])
+}
+
+model User {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  name         String?
+  role         RoleEnum   @default(MEMBER)
+  companyId    String?
+  departmentId String?
+  teamId       String?
+  company      Company?   @relation(fields: [companyId], references: [id])
+  department   Department? @relation(fields: [departmentId], references: [id])
+  team         Team?       @relation(fields: [teamId], references: [id])
+  @@index([companyId])
+  @@index([departmentId])
+  @@index([teamId])
+}
